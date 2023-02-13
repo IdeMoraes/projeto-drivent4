@@ -29,26 +29,22 @@ async function findByUserId(userId: number) {
     }
   });
 }
-async function upsert({ id, roomId, userId }: UpdateBookingParams): Promise<Booking> {
-  return prisma.booking.upsert({
+async function update({ id, roomId }: UpdateBookingParams): Promise<Booking> {
+  return prisma.booking.update({
     where: {
       id
     },
-    create: {
-      roomId,
-      userId
-    },
-    update: {
+    data: {
       roomId
     }
   });
 }
 type CreateBookingParams = Omit<Booking, "id"|"createdAt"|"updatedAt">
-type UpdateBookingParams = Omit<Booking, "createdAt"|"updatedAt">
+type UpdateBookingParams = Omit<Booking, "createdAt"|"updatedAt"|"userId">
 const bookingRepository = {
   create,
   findByRoomId,
   findByUserId,
-  upsert
+  update
 };
 export default bookingRepository;

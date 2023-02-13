@@ -28,11 +28,15 @@ export async function postBooking(req: AuthenticatedRequest, res: Response) {
   }
 }
 export async function putBooking(req: AuthenticatedRequest, res: Response) {
+  const bookingId = Number(req.params.bookingId);
+  if(!bookingId) {
+    return res.sendStatus(httpStatus.BAD_REQUEST);
+  }
   const { userId } = req;
   const roomId = Number(req.body.roomId);
   if (!roomId) { return res.sendStatus(httpStatus.BAD_REQUEST); }
   try {
-    const booking = await bookingService.postBooking(userId, roomId);
+    const booking = await bookingService.putBooking(userId, roomId);
     return res.status(httpStatus.OK).send({ bookingId: booking.id });
   } catch (error) {
     if (error.name === "CannotBookingError") { return res.sendStatus(httpStatus.FORBIDDEN); }

@@ -40,7 +40,7 @@ async function putBooking(userId: number, roomId: number) {
   if(!booking) {
     throw cannotBookingError();
   }
-  return bookingRepository.upsert({ id: booking.id, roomId, userId });
+  return bookingRepository.update({ id: booking.id, roomId });
 }
 const bookingService = {
   getBooking,
