@@ -6,18 +6,16 @@ import roomRepository from "@/repositories/room-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 
 async function getBooking(userId: number) {
-  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-  if(!enrollment) {throw notFoundError;}
   const booking = await bookingRepository.findByUserId(userId);
-  if(!booking) {throw notFoundError;}
+  if(!booking) {throw notFoundError();}
   return booking;
 }
 async function postBooking(userId: number, roomId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-  if(!enrollment) {throw notFoundError;}
+  if(!enrollment) {throw cannotBookingError();}
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
   if(!ticket||ticket.status==="RESERVED"||ticket.TicketType.isRemote||!ticket.TicketType.includesHotel) {
-    throw notFoundError;
+    throw cannotBookingError();
   }
   const room = await roomRepository.findById(roomId);
   const bookings = await bookingRepository.findByRoomId(roomId);
@@ -26,8 +24,27 @@ async function postBooking(userId: number, roomId: number) {
   }
   return bookingRepository.create({ roomId, userId });
 }
+async function putBooking(userId: number, roomId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if(!enrollment) {throw cannotBookingError();}
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+  if(!ticket||ticket.status==="RESERVED"||ticket.TicketType.isRemote||!ticket.TicketType.includesHotel) {
+    throw cannotBookingError();
+  }
+  const room = await roomRepository.findById(roomId);
+  const bookings = await bookingRepository.findByRoomId(roomId);
+  if(room.capacity<=bookings.length) {
+    throw cannotBookingError();
+  }
+  const booking = await bookingRepository.findByUserId(userId);
+  if(!booking) {
+    throw cannotBookingError();
+  }
+  return bookingRepository.upsert({ id: booking.id, roomId, userId });
+}
 const bookingService = {
   getBooking,
-  postBooking
+  postBooking,
+  putBooking
 };
 export default bookingService;
